@@ -147,12 +147,12 @@ class ChatApp:
         return message_row
 
     def main(self, page: ft.Page):
-        #page.client_storage.set("api_key", ""),
+        page.client_storage.set("api_key", ""),
         #page.client_storage.set("selected_model", self.current_model),
         page.title = "Chat AI"
         page.fonts = {
-            "mon": "http://192.168.1.2:5500/assets/fonts/MontserratAlternates-Light.ttf",
-            "mons": "http://192.168.1.2:5500/assets/fonts/MontserratAlternates-SemiBold.ttf",
+            "mon": "/fonts/MontserratAlternates-Light.ttf",
+            "mons": "/fonts/MontserratAlternates-SemiBold.ttf",
             "monospace": "",
         }
         page.theme_mode = ft.ThemeMode.DARK
@@ -219,7 +219,7 @@ class ChatApp:
                                 controls=[
                                     ft.Divider(height=70, color="transparent"),
                                     ft.Image(
-                                        "https://console.groq.com/groqcloud_light_v2.svg",
+                                        "/groqcloud_light_v2.svg",
                                         border_radius=0,
                                         height=50,
                                     ),
@@ -249,6 +249,7 @@ class ChatApp:
                         ),
                         ft.Divider(height=70, color="transparent"),
                         api_key_field,
+                        ft.TextButton('Obtener API KEY', url='https://console.groq.com/keys'),
                         ft.Divider(height=50, color="transparent"),
                         ft.ElevatedButton(
                             text="COMENZAR",
@@ -305,7 +306,7 @@ class ChatApp:
                 ft.Row(
                     [
                         ft.Image(
-                            "https://console.groq.com/groqcloud_light_v2.svg",
+                            "/groqcloud_light_v2.svg",
                             border_radius=0,
                             width=150,
                         ),
@@ -389,7 +390,7 @@ class ChatApp:
             title=ft.Row([ft.Text("Información", font_family="mon", color=ft.colors.PRIMARY)]),
             content=ft.Column(
                 controls=[
-                    ft.Row([ft.Image("https://console.groq.com/groqcloud_light_v2.svg",width=150)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([ft.Image("/groqcloud_light_v2.svg",width=150)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text('gropcloud es una aplicación que ha sido creada con el objetivo de tener a la mano una potente herramienta que nos permite acceder y utilizar facilmente diferentes modelos de lenguaje.', text_align='center'),
                     ft.Divider(height=20, color=ft.colors.TRANSPARENT),
                     ft.Row([ft.IconButton(ft.icons.GET_APP)], alignment=ft.MainAxisAlignment.CENTER),
