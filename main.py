@@ -391,8 +391,8 @@ class ChatApp:
                 controls=[
                     ft.Row([ft.Image("/images/groqcloud_light_v2.svg",width=150)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text('gropcloud es una aplicación que ha sido creada con el objetivo de tener a la mano una potente herramienta que nos permite acceder y utilizar facilmente diferentes modelos de lenguaje.', text_align='center'),
-                    ft.Divider(height=20, color=ft.colors.TRANSPARENT),
-                    ft.Row([ft.IconButton(ft.icons.GET_APP)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Divider(height=40, color=ft.colors.TRANSPARENT),
+                    #ft.Row([ft.IconButton(ft.icons.GET_APP)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([ft.Text('Copyright (c) 2024 AEWareDevs', color=ft.colors.PRIMARY)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([ft.TextButton('ElJoker63', url='https://t.me/ElJoker63')], alignment=ft.MainAxisAlignment.CENTER),
                 ],
