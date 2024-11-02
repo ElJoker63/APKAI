@@ -5,15 +5,14 @@ import requests
 import json
 
 def get_models():
-    head = "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"
-    req = Groq(api_key=head).models.list()
+    key = "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"
+    req = Groq(api_key=key).models.list()
     models = {}
     for model in req.data:
         model_id = model.id
         model_name = model.owned_by
         models[model_id] = model_name
     return models
-
 
 class ChatApp:
     def __init__(self):
