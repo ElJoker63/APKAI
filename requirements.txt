@@ -1,2 +1,4 @@
 flet
 groq
+requests
+json
