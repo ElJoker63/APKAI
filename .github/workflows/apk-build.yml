@@ -2,10 +2,10 @@ name: APK Build
 
 on:
   # Runs on push to any of the below branches
-  #push:
-  #  branches:
-  #    - master
-  #    - main
+  push:
+    branches:
+      - master
+      - main
   # Runs on pull request events that target one of the below branches
   #pull_request:
   #  branches:
@@ -17,8 +17,8 @@ on:
 
 env:
   # https://flet.dev/docs/publish#versioning
-  BUILD_NUMBER: 202411011
-  BUILD_VERSION: 3.0.1
+  BUILD_NUMBER: 202411021
+  BUILD_VERSION: 0.0.1
   PYTHON_VERSION: 3.12.2
   FLUTTER_VERSION: 3.24.4
   APP_NAME: "GENTOKEN+"
