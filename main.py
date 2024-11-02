@@ -218,7 +218,7 @@ class ChatApp:
                                 controls=[
                                     ft.Divider(height=70, color="transparent"),
                                     ft.Image(
-                                        "/groqcloud_light_v2.svg",
+                                        "/images/groqcloud_light_v2.svg",
                                         border_radius=0,
                                         height=50,
                                     ),
@@ -305,7 +305,7 @@ class ChatApp:
                 ft.Row(
                     [
                         ft.Image(
-                            "/groqcloud_light_v2.svg",
+                            "/images/groqcloud_light_v2.svg",
                             border_radius=0,
                             width=150,
                         ),
@@ -389,7 +389,7 @@ class ChatApp:
             title=ft.Row([ft.Text("Información", font_family="mon", color=ft.colors.PRIMARY)]),
             content=ft.Column(
                 controls=[
-                    ft.Row([ft.Image("/groqcloud_light_v2.svg",width=150)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([ft.Image("/images/groqcloud_light_v2.svg",width=150)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text('gropcloud es una aplicación que ha sido creada con el objetivo de tener a la mano una potente herramienta que nos permite acceder y utilizar facilmente diferentes modelos de lenguaje.', text_align='center'),
                     ft.Divider(height=20, color=ft.colors.TRANSPARENT),
                     ft.Row([ft.IconButton(ft.icons.GET_APP)], alignment=ft.MainAxisAlignment.CENTER),
