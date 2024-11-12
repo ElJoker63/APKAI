@@ -176,7 +176,7 @@ jobs:
         
 
   create-release:
-    needs: [build-linux, build-macos, build-windows]
+    needs: [build-linux, build-macos, build-windows, build-android]
     runs-on: ubuntu-latest
     permissions:
       contents: write
