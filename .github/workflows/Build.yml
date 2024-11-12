@@ -17,7 +17,7 @@ on:
 
 env:
   BUILD_NUMBER: 202411121
-  BUILD_VERSION: 0.0.3
+  BUILD_VERSION: 0.0.4
   PYTHON_VERSION: 3.12.2
   FLUTTER_VERSION: 3.24.4
   APP_NAME: "GroqCloud"
@@ -202,9 +202,9 @@ jobs:
             **Versión:** v${{ env.BUILD_VERSION }}
             **Revisión:** ${{ env.BUILD_NUMBER }}
 
-            [💻WINDOWS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/windows.zip)
-            [🐧LINUX](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/linux.zip)
-            [🍏MACOS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/macos.zip)
+            [💻WINDOWS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/windows-${{ env.BUILD_VERSION }}.zip)
+            [🐧LINUX](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/linux-${{ env.BUILD_VERSION }}.zip)
+            [🍏MACOS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/macos-${{ env.BUILD_VERSION }}.zip)
             [🤖ANDROID](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/app-release.apk)
           draft: false
           prerelease: false
@@ -212,9 +212,9 @@ jobs:
       - name: Zip Artifacts
         run: |
           cd artifacts
-          zip -r linux.zip flet-linux/
-          zip -r macos.zip flet-macos/
-          zip -r windows.zip flet-windows/
+          zip -r linux-${{ env.BUILD_VERSION }}.zip flet-linux/
+          zip -r macos-${{ env.BUILD_VERSION }}.zip flet-macos/
+          zip -r windows-${{ env.BUILD_VERSION }}.zip flet-windows/
 
       - name: List Workspace After Zipping
         run: |
@@ -230,9 +230,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            artifacts/linux.zip
-            artifacts/macos.zip
-            artifacts/windows.zip
+            artifacts/linux-${{ env.BUILD_VERSION }}.zip
+            artifacts/macos-${{ env.BUILD_VERSION }}.zip
+            artifacts/windows-${{ env.BUILD_VERSION }}.zip
             artifacts/apk-artifact/app-release.apk
 
           tag_name: v${{ env.BUILD_VERSION }}
@@ -245,19 +245,15 @@ jobs:
           to: ${{ secrets.TELEGRAM }}
           token: ${{ secrets.BOT }}
           message: |
-            Nueva actualizacion ${{ env.APP_NAME}}
+            🚀 *Nueva actualizacion ${{ env.APP_NAME }}*
             *Versión:* ${{ env.BUILD_VERSION }}
             *Revisión:* ${{ env.BUILD_NUMBER }}
+
+            gropcloud es una aplicación que ha sido creada con el objetivo de tener a la mano una potente herramienta que nos permite acceder y utilizar facilmente diferentes modelos de lenguaje.
             
-            🐧 En esta nueva version:
-            - Se ha cambiado completamente la tecnologia de la app.
-            - Se ha eliminado la necesidad de una API para poder realizar las solicitudes.
-            - Se ha creado y optimizado la app para mayor compatibilidad.
-            - Se ha convertido la app en multiplataforma.
-            
-            [💻WINDOWS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/windows.zip)
-            [🐧LINUX](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/linux.zip)
-            [🍏MACOS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/macos.zip)
+            [💻WINDOWS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/windows-${{ env.BUILD_VERSION }}.zip)
+            [🐧LINUX](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/linux-${{ env.BUILD_VERSION }}.zip)
+            [🍏MACOS](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/macos-${{ env.BUILD_VERSION }}.zip)
             [🤖ANDROID](https://github.com/${{ github.repository }}/releases/download/v${{ env.BUILD_VERSION }}/app-release.apk)
           format: markdown
           disable_web_page_preview: true
