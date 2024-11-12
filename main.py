@@ -146,7 +146,7 @@ class ChatApp:
         return message_row
 
     def main(self, page: ft.Page):
-        page.client_storage.set("api_key", ""),
+        #page.client_storage.set("api_key", ""),
         #page.client_storage.set("selected_model", self.current_model),
         page.title = "Chat AI"
         page.fonts = {
