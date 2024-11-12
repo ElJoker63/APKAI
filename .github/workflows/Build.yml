@@ -212,9 +212,9 @@ jobs:
       - name: Zip Artifacts
         run: |
           cd artifacts
-          zip -r linux-${{ env.BUILD_VERSION }}.zip flet-linux/
-          zip -r macos-${{ env.BUILD_VERSION }}.zip flet-macos/
-          zip -r windows-${{ env.BUILD_VERSION }}.zip flet-windows/
+          zip -r linux-${{ env.BUILD_VERSION }}.zip flet-linux/*
+          zip -r macos-${{ env.BUILD_VERSION }}.zip flet-macos/*
+          zip -r windows-${{ env.BUILD_VERSION }}.zip flet-windows/*
 
       - name: List Workspace After Zipping
         run: |
