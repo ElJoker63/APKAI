@@ -3,16 +3,13 @@ import re
 from groq import Groq
 import requests
 import json
+import os
+import socks
+import socket
+import logging
 
-def get_models():
-    key = "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"
-    req = Groq(api_key=key).models.list()
-    models = {}
-    for model in req.data:
-        model_id = model.id
-        model_name = model.owned_by
-        models[model_id] = model_name
-    return models
+# Configura el sistema de logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 class ChatApp:
     def __init__(self):
@@ -23,8 +20,60 @@ class ChatApp:
                 "content": "You are a helpful assistant. You reply with very short answers.",
             }
         ]
-        self.available_models = get_models()
-        self.current_model = "llama3-8b-8192"
+        self.proxy_enabled = False  # Estado del proxy
+        self.proxy_host = ""
+        self.proxy_port = 0
+        self.proxy_user = ""
+        self.proxy_pass = ""
+        self.available_models = ChatApp.get_models()
+        self.current_model = "llama3-8b-8192"  
+
+    def get_models():
+        key = "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"
+        req = Groq(api_key=key).models.list()
+        models = {}
+        for model in req.data:
+            model_id = model.id
+            model_name = model.owned_by
+            models[model_id] = model_name
+        return models   
+
+    def apply_proxy(self):
+        """Aplica la configuración del proxy si está habilitado."""
+        if self.proxy_enabled and self.proxy_host and self.proxy_port:
+            socks.set_default_proxy(
+                socks.SOCKS5,
+                self.proxy_host,
+                self.proxy_port,
+                username=self.proxy_user or None,
+                password=self.proxy_pass or None,
+            )
+            socket.socket = socks.socksocket  # Reemplaza el socket global
+            os.environ["HTTPS_PROXY"] = f"socks5://{self.proxy_host}:{self.proxy_port}"
+            os.environ["HTTP_PROXY"] = f"socks5://{self.proxy_host}:{self.proxy_port}"
+        else:
+            # Elimina la configuración de proxy si está desactivado
+            os.environ.pop("HTTPS_PROXY", None)
+            os.environ.pop("HTTP_PROXY", None)
+
+    def save_proxy_settings(self, page):
+        """Guarda la configuración del proxy en client_storage y aplica los cambios."""
+        self.proxy_enabled = self.proxy_switch.value
+        self.proxy_host = self.proxy_host_field.value
+        self.proxy_port = int(self.proxy_port_field.value)
+        self.proxy_user = self.proxy_user_field.value
+        self.proxy_pass = self.proxy_pass_field.value
+
+        logging.info(f"Proxy settings saved: {self.proxy_enabled}, {self.proxy_host}, {self.proxy_port}")
+
+        self.apply_proxy()  # Aplica la configuración
+        self.proxy_dialog.open = False
+        page.client_storage.set("proxy_enabled", self.proxy_enabled)
+        page.client_storage.set("proxy_host", self.proxy_host)
+        page.client_storage.set("proxy_port", self.proxy_port)
+        page.client_storage.set("proxy_user", self.proxy_user)
+        page.client_storage.set("proxy_pass", self.proxy_pass)
+        page.update()   
 
     def process_message_with_code(self, message):
         # Split message into parts based on code blocks
@@ -51,11 +100,11 @@ class ChatApp:
                                     ft.Text(
                                         f"Code ({lang})" if lang else "Code",
                                         size=12,
-                                        color=ft.colors.GREY_400,
+                                        color=ft.Colors.GREY_400,
                                         font_family="mons",
                                     ),
                                     ft.IconButton(
-                                        icon=ft.icons.COPY,
+                                        icon=ft.Icons.COPY,
                                         icon_size=16,
                                         tooltip="Copiar código",
                                         on_click=lambda e, code=code_content: self.copy_to_clipboard(code, e),
@@ -68,13 +117,13 @@ class ChatApp:
                                     font_family="monospace",
                                     selectable=True,
                                 ),
-                                bgcolor=ft.colors.BLACK,
+                                bgcolor=ft.Colors.BLACK,
                                 padding=10,
                                 border_radius=8,
                             ),
                         ]
                     ),
-                    bgcolor=ft.colors.with_opacity(0.1, ft.colors.WHITE),
+                    bgcolor=ft.Colors.with_opacity(0.1, ft.Colors.WHITE),
                     border_radius=8,
                     padding=10,
                     margin=ft.margin.symmetric(vertical=5),
@@ -115,7 +164,7 @@ class ChatApp:
         )
         
         copy_button = ft.IconButton(
-            icon=ft.icons.COPY,
+            icon=ft.Icons.COPY,
             icon_size=16,
             tooltip="Copiar mensaje",
             visible=not is_user,
@@ -126,12 +175,12 @@ class ChatApp:
             [
                 ft.Container(
                     content=ft.Column(controls=content_controls, spacing=0, tight=True),
-                    bgcolor=ft.colors.PRIMARY if is_user else ft.colors.GREY_700,
+                    bgcolor=ft.Colors.PRIMARY if is_user else ft.Colors.GREY_700,
                     border_radius=8,
                     padding=10,
                 ),
                 ft.IconButton(
-                    icon=ft.icons.COPY,
+                    icon=ft.Icons.COPY,
                     icon_size=16,
                     tooltip="Copiar mensaje",
                     visible=not is_user,
@@ -159,16 +208,46 @@ class ChatApp:
             color_scheme=ft.ColorScheme(
                 primary="#F55036",
                 secondary="#153333",
-                background=ft.colors.SECONDARY,
+                background=ft.Colors.SECONDARY,
             ),
             scrollbar_theme=ft.ScrollbarTheme(
-                thumb_color=ft.colors.TRANSPARENT
+                thumb_color=ft.Colors.TRANSPARENT
             ),
             font_family="mons",
         )
         page.padding = 20
         # page.window.width = 400
         # page.window.height = 600
+        page.update()
+
+        # Cargar configuración previa
+        self.proxy_enabled = page.client_storage.get("proxy_enabled") or False
+        self.proxy_host = page.client_storage.get("proxy_host") or ""
+        self.proxy_port = int(page.client_storage.get("proxy_port")) if page.client_storage.get("proxy_port") else 0
+        self.proxy_user = page.client_storage.get("proxy_user") or ""
+        self.proxy_pass = page.client_storage.get("proxy_pass") or ""
+
+
+        # Aplicar proxy si estaba activado
+        self.apply_proxy()
+
+        # Crear interfaz de ajustes de proxy
+        self.proxy_switch = ft.Switch(label="Habilitar Proxy", value=self.proxy_enabled)
+        self.proxy_host_field = ft.TextField(label="Host", value=self.proxy_host, border_radius=35,
+                border_color=ft.Colors.PRIMARY,
+                color=ft.Colors.PRIMARY,)
+        self.proxy_port_field = ft.TextField(label="Puerto", value=str(self.proxy_port), border_radius=35,
+                border_color=ft.Colors.PRIMARY,
+                color=ft.Colors.PRIMARY,)
+        self.proxy_user_field = ft.TextField(label="Usuario", value=self.proxy_user, border_radius=35,
+                border_color=ft.Colors.PRIMARY,
+                color=ft.Colors.PRIMARY,)
+        self.proxy_pass_field = ft.TextField(label="Contraseña", value=self.proxy_pass, password=True, border_radius=35,
+                border_color=ft.Colors.PRIMARY,
+                color=ft.Colors.PRIMARY,)
+
+        # Agregar el diálogo de configuración al overlay
+        #page.overlay.append(self.proxy_dialog)
 
         def check_api_key():
             stored_key = page.client_storage.get("api_key")
@@ -176,7 +255,7 @@ class ChatApp:
             if stored_model:
                 self.current_model = stored_model
             if stored_key:
-                self.client = Groq(api_key=stored_key)
+                self.client = Groq(api_key=stored_key, )
                 show_chat()
             else:
                 show_welcome()
@@ -196,9 +275,21 @@ class ChatApp:
         def close(e):
             info_dialog.open = False
             page.update()
+
+        def close_proxy(e):
+            self.proxy_dialog.open = False
+            page.update()
+
+        def close_info(e):
+            info_dialog.open = False
+            page.update()
             
         def show_settings(e):
             settings_dialog.open = True
+            page.update()
+
+        def show_proxy(e):
+            self.proxy_dialog.open = True
             page.update()
             
         def show_info(e):
@@ -229,14 +320,14 @@ class ChatApp:
                                                 "chat",
                                                 size=32,
                                                 weight=ft.FontWeight.BOLD,
-                                                color=ft.colors.WHITE,
+                                                color=ft.Colors.WHITE,
                                                 font_family="mons",
                                             ),
                                             ft.Text(
                                                 "ai",
                                                 size=32,
                                                 weight=ft.FontWeight.BOLD,
-                                                color=ft.colors.PRIMARY,
+                                                color=ft.Colors.PRIMARY,
                                                 font_family="mon",
                                             ),
                                         ],
@@ -253,8 +344,8 @@ class ChatApp:
                         ft.ElevatedButton(
                             text="COMENZAR",
                             width=200,
-                            bgcolor=ft.colors.PRIMARY,
-                            color=ft.colors.BACKGROUND,
+                            bgcolor=ft.Colors.PRIMARY,
+                            color=ft.Colors.SECONDARY,
                             style=(
                                 ft.ButtonStyle(overlay_color="white", color="white")
                             ),
@@ -264,13 +355,13 @@ class ChatApp:
                         ft.Text(
                             "Powered by groqcloud",
                             size=12,
-                            color=ft.colors.GREY_800,
+                            color=ft.Colors.GREY_800,
                             font_family="mons",
                         ),
                         ft.Text(
                             "Dev @ElJoker63",
                             size=12,
-                            color=ft.colors.GREY_800,
+                            color=ft.Colors.GREY_800,
                             font_family="mons",
                         ),
                     ],
@@ -288,17 +379,14 @@ class ChatApp:
             self.input_field = ft.TextField(
                 hint_text="Escribe tu mensaje...",
                 border_radius=8,
-                border_color=ft.colors.PRIMARY,
+                border_color=ft.Colors.PRIMARY,
                 expand=True,
                 on_submit=self.send_message,
             )
 
-            settings_button = ft.IconButton(
-                icon=ft.icons.SETTINGS,
-                on_click=show_settings,
-            )
-
-            send_button = ft.IconButton(icon=ft.icons.SEND, on_click=self.send_message)
+            settings_button = ft.IconButton(icon=ft.Icons.SETTINGS, on_click=show_settings)
+            
+            send_button = ft.IconButton(icon=ft.Icons.SEND, on_click=self.send_message)
 
             page.add(
                 ft.Divider(height=10, color="transparent"),
@@ -313,10 +401,10 @@ class ChatApp:
                     ],
                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                 ),
-                ft.Text(f'📦Modelo: {self.current_model}\n🐧Owner: {next((text for key, text in get_models().items() if key == self.current_model), None)}', color=ft.colors.PRIMARY),
+                ft.Text(f'📦Modelo: {self.current_model}\n🐧Owner: {next((text for key, text in ChatApp.get_models().items() if key == self.current_model), None)}', color=ft.Colors.PRIMARY),
                 ft.Container(
                     content=self.chat_display,
-                    border=ft.border.all(1, ft.colors.PRIMARY),
+                    border=ft.border.all(1, ft.Colors.PRIMARY),
                     border_radius=8,
                     padding=10,
                     expand=True,
@@ -334,7 +422,7 @@ class ChatApp:
                 password=False,
                 width=300,
                 border_radius=35,
-                border_color=ft.colors.PRIMARY,
+                border_color=ft.Colors.PRIMARY,
             )
         else:
             api_key_field = ft.TextField(
@@ -342,14 +430,18 @@ class ChatApp:
                 password=False,
                 width=300,
                 border_radius=35,
-                border_color=ft.colors.PRIMARY,
-                color=ft.colors.PRIMARY,
+                border_color=ft.Colors.PRIMARY,
+                color=ft.Colors.PRIMARY,
             )
+
+        # Botón de configuración de proxy
+        proxy_button =  ft.TextButton('SET PROXY', on_click=show_proxy, style=ft.ButtonStyle(color=ft.Colors.PRIMARY),)
+        #ft.IconButton(icon=ft.icons.SETTINGS, on_click=show_proxy)
 
         model_dropdown = ft.Dropdown(
             width=300,
-            border_color=ft.colors.PRIMARY,
-            color=ft.colors.PRIMARY,
+            border_color=ft.Colors.PRIMARY,
+            color=ft.Colors.PRIMARY,
             border_radius=35,
             label="Selecciona el modelo",
             options=[
@@ -360,13 +452,15 @@ class ChatApp:
         )
 
         settings_dialog = ft.AlertDialog(
-            # bgcolor=ft.colors.SECONDARY,
+            # bgcolor=ft.Colors.SECONDARY,
             modal=True,
-            title=ft.Row([ft.Text("Configuración", font_family="mon", color=ft.colors.PRIMARY),ft.IconButton(icon=ft.icons.INFO, on_click=show_info,)]),
+            title=ft.Row([ft.Text("Configuración", font_family="mon", color=ft.Colors.PRIMARY),ft.IconButton(icon=ft.Icons.INFO, on_click=show_info,)]),
             content=ft.Column(
                 controls=[
+                    proxy_button,
+                    ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
                     model_dropdown,
-                    ft.Divider(height=10, color=ft.colors.TRANSPARENT),
+                    ft.Divider(height=10, color=ft.Colors.TRANSPARENT),
                     api_key_field,
                 ],
                 tight=True,
@@ -380,20 +474,40 @@ class ChatApp:
             actions_alignment=ft.MainAxisAlignment.END,
         )
 
+        self.proxy_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Proxy SOCKS5", font_family='mon', color=ft.Colors.PRIMARY),
+            content=ft.Column([
+                self.proxy_switch,
+                self.proxy_host_field,
+                self.proxy_port_field,
+                self.proxy_user_field,
+                self.proxy_pass_field,
+            ], 
+                tight=True,
+                spacing=5,),
+            actions=[
+                ft.TextButton("Guardar", on_click=lambda _: self.save_proxy_settings(page)),
+                ft.TextButton("Cerrar", on_click=close_proxy),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        page.overlay.append(self.proxy_dialog)
         page.overlay.append(settings_dialog)
         check_api_key()
         
         info_dialog = ft.AlertDialog(
             scrollable=True,
             modal=True,
-            title=ft.Row([ft.Text("Información", font_family="mon", color=ft.colors.PRIMARY)]),
+            title=ft.Row([ft.Text("Información", font_family="mon", color=ft.Colors.PRIMARY)]),
             content=ft.Column(
                 controls=[
                     ft.Row([ft.Image("/images/groqcloud_light_v2.svg",width=150)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Text('gropcloud es una aplicación que ha sido creada con el objetivo de tener a la mano una potente herramienta que nos permite acceder y utilizar facilmente diferentes modelos de lenguaje.', text_align='center'),
-                    ft.Divider(height=40, color=ft.colors.TRANSPARENT),
-                    #ft.Row([ft.IconButton(ft.icons.GET_APP)], alignment=ft.MainAxisAlignment.CENTER),
-                    ft.Row([ft.Text('Copyright (c) 2024 AEWareDevs', color=ft.colors.PRIMARY)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Divider(height=40, color='transparent'),
+                    #ft.Row([ft.IconButton(ft.Icons.GET_APP)], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Row([ft.Text('Copyright (c) 2025 AEWareDevs', color=ft.Colors.PRIMARY)], alignment=ft.MainAxisAlignment.CENTER),
                     ft.Row([ft.TextButton('ElJoker63', url='https://t.me/ElJoker63')], alignment=ft.MainAxisAlignment.CENTER),
                 ],
                 tight=True,
@@ -446,5 +560,5 @@ class ChatApp:
 
 
 if __name__ == "__main__":
-    app = ChatApp()
-    ft.app(target=app.main)
+    logging.info("Starting Flet application")
+    ft.app(target=ChatApp().main, assets_dir='assets')
