@@ -7,7 +7,9 @@ import os
 import socks
 import socket
 import logging
+from flet.security import decrypt
 
+secret = 'Lol'
 # Configura el sistema de logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -26,10 +28,10 @@ class ChatApp:
         self.proxy_user = ""
         self.proxy_pass = ""
         self.available_models = ChatApp.get_models()
-        self.current_model = "llama3-8b-8192"  
+        self.current_model = "openai/gpt-oss-120b"  
 
     def get_models():
-        key = "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"
+        key = decrypt('SIlPLbOh3pTwtUZF6POiAWdBQUFBQUJveWp1emhEd2hQTjdBX3VuaU1jT2dndnJUNVNTdlQ2QmRxbnA5YjVfbGZiclpRY3hGc0drWWd6NWpWc0xtU08ySzZkTDFRdnBnWU03cmpBbkRwNjZBZkRkejBKQlkzTHVwV0lkU3YzNWJDS3pQU0JZWENTbU9UTkpJOUJuN2xlVDFSdE5kX2xxTTlDckxibElmOVg5RHVBdnBTQT09', secret)
         req = Groq(api_key=key).models.list()
         models = {}
         for model in req.data:
